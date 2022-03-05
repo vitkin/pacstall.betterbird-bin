@@ -4,7 +4,8 @@ pkgname=betterbird-bin
 _pkgname=betterbird
 pkgdesc="Betterbird is a fine-tuned version of Mozilla Thunderbird, Thunderbird on steroids, if you will."
 pkgrel=1
-pkgver=91.6.1
+pkgver=91.7.0
+_pkgsubver=28
 arch=('x86_64')
 url="https://www.betterbird.eu/index.html"
 license=('MPL2')
@@ -13,7 +14,7 @@ conflicts=('betterbird')
 
 source=(
         # https://www.betterbird.eu/downloads/get.php?os=linux&lang=en-US&version=release
-        "https://www.betterbird.eu/downloads/LinuxArchive/betterbird-91.6.1-bb27.en-US.linux-x86_64.tar.bz2"
+        "https://www.betterbird.eu/downloads/LinuxArchive/betterbird-$pkgver-bb$_pkgsubver.en-US.linux-x86_64.tar.bz2"
         "betterbird.desktop"
         "betterbird.svg"
       )
