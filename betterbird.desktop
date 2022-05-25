@@ -63,7 +63,6 @@ Categories=Network;Email;
 MimeType=message/rfc822;x-scheme-handler/mailto;application/x-xpinstall;
 StartupNotify=true
 Actions=ComposeMessage;OpenAddressBook;
-
 [Desktop Action ComposeMessage]
 Name=Write new message
 Name[ar]=اكتب رسالة جديدة
@@ -117,7 +116,6 @@ Name[vi]=Viết thư mới
 Name[zh_CN]=编写新消息
 Name[zh_TW]=寫一封新訊息
 Exec=betterbird -compose
-
 [Desktop Action OpenAddressBook]
 Name=Open address book
 Name[ar]=افتح دفتر العناوين
@@ -171,3 +169,4 @@ Name[vi]=Mở sổ địa chỉ
 Name[zh_CN]=打开通讯录
 Name[zh_TW]=開啟通訊錄
 Exec=betterbird -addressbook
+
