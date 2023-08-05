@@ -3,9 +3,9 @@
 pkgname=betterbird-bin 
 _pkgname=betterbird 
 pkgdesc="Betterbird is a fine-tuned version of Mozilla Thunderbird, Thunderbird on steroids, if you will." 
-pkgrel=2 
-pkgver=115.0.1 
-_pkgsubver=7 
+pkgrel=1 
+pkgver=115.1.0 
+_pkgsubver=8 
 arch=('amd64') 
 url="https://www.betterbird.eu/index.html" 
 license=('MPL2') 
