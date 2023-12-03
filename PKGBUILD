@@ -3,7 +3,7 @@
 pkgname=betterbird-bin 
 _pkgname=betterbird 
 pkgdesc="Betterbird is a fine-tuned version of Mozilla Thunderbird, Thunderbird on steroids, if you will." 
-pkgrel=1 
+pkgrel=2 
 pkgver=115.5.1 
 _pkgsubver=19 
 arch=('amd64') 
@@ -11,7 +11,7 @@ url="https://www.betterbird.eu/index.html"
 license=('MPL2') 
 provides=('betterbird') 
 conflicts=('betterbird') 
-source=("https://www.betterbird.eu/downloads/LinuxArchive/betterbird-$pkgver-bb$_pkgsubver.en-US.linux-x86_64.tar.bz2" 
+source=("https://www.betterbird.eu/downloads/LinuxArchive/betterbird-$pkgver-bb$_pkgsubver-build2.en-US.linux-x86_64.tar.bz2" 
         "betterbird.desktop" 
         "betterbird.svg") 
 sha256sums=('SKIP' 
