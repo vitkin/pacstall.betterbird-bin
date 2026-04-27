@@ -52,9 +52,11 @@ resolve_latest_release() {
   FILENAME="$(basename "${FINAL_URL}")"
 
   # Expected form: betterbird-140.9.0esr-bb20.en-US.linux-x86_64.tar.xz
-  if [[ "${FILENAME}" =~ ^betterbird-([0-9]+\.[0-9]+\.[0-9]+esr)-(bb[0-9]+)\.en-US\.linux-x86_64\.tar\.xz$ ]]; then
-    VERSION="${BASH_REMATCH[1]}"
-    BUILD="${BASH_REMATCH[2]}"
+  PARSED_RELEASE="$(printf '%s\n' "${FILENAME}" |
+  sed -nE 's/^betterbird-([0-9]+\.[0-9]+\.[0-9]+esr)-(bb[0-9]+)\.en-US\.linux-x86_64\.tar\.xz$/\1 \2/p')"
+
+  if [[ -n "${PARSED_RELEASE}" ]]; then
+    read -r VERSION BUILD <<< "${PARSED_RELEASE}"
   else
     echo "Error: Unexpected archive filename format: ${FILENAME}" >&2
     exit 1
@@ -104,6 +106,47 @@ resolve_release_sha() {
   fi
 
   echo "[+] Found SHA256: ${NEW_SHA}"
+}
+
+generate_srcinfo() {
+  local repo_root srcinfo_script package_dir_name tmp_tools abs_pacscript
+
+  repo_root="$(dirname "$(dirname "${SCRIPT_DIR}")")"
+  srcinfo_script="${repo_root}/scripts/srcinfo.sh"
+
+  if [[ -f "${srcinfo_script}" && -f "${repo_root}/distrolist" ]]; then
+    echo "[-] Generating .SRCINFO (Monorepo detected)..."
+    package_dir_name="$(basename "${SCRIPT_DIR}")"
+
+    pushd "${repo_root}" > /dev/null || exit
+    ./scripts/srcinfo.sh write "packages/${package_dir_name}/$(basename "${PACSCRIPT}")"
+    popd > /dev/null || exit
+    echo "[+] .SRCINFO updated."
+  else
+    echo "[-] Generating .SRCINFO (Standalone/CI detected)..."
+    tmp_tools="$(mktemp -d)"
+
+    echo "    Fetching srcinfo.sh and distrolist..."
+    if curl -fsSL "https://raw.githubusercontent.com/pacstall/pacstall-programs/master/scripts/srcinfo.sh" \
+      -o "${tmp_tools}/srcinfo.sh" && \
+      curl -fsSL "https://raw.githubusercontent.com/pacstall/pacstall-programs/master/distrolist" \
+      -o "${tmp_tools}/distrolist"; then
+
+      chmod +x "${tmp_tools}/srcinfo.sh"
+      abs_pacscript="${PACSCRIPT}"
+
+      pushd "${tmp_tools}" > /dev/null || exit
+      ./srcinfo.sh write "${abs_pacscript}"
+      popd > /dev/null || exit
+
+      rm -rf "${tmp_tools}"
+      echo "[+] .SRCINFO updated."
+    else
+      echo "Error: Failed to fetch srcinfo tools." >&2
+      rm -rf "${tmp_tools}"
+      exit 1
+    fi
+  fi
 }
 
 MODE="update"
@@ -198,32 +241,31 @@ fi
 
 if [[ "${CURRENT_VERSION}" == "${VERSION}" && "${CURRENT_BUILD}" == "${BUILD}" && "${CURRENT_SHA}" == "${NEW_SHA}" ]]; then
   echo "[+] ${PACSCRIPT} already up to date"
-  exit 0
+else
+  echo "[-] Updating ${PACSCRIPT}..."
+  sed -i "s/^pkgver=\".*\"/pkgver=\"${VERSION}\"/" "${PACSCRIPT}"
+  sed -i "s/^_build=.*/_build=${BUILD}/" "${PACSCRIPT}"
+
+  # Update only the first sha256 entry (archive), keep desktop checksum untouched.
+  awk -v sha="${NEW_SHA}" '
+    BEGIN { in_sha=0; replaced=0 }
+    /^sha256sums=\(/ { in_sha=1; print; next }
+    in_sha && !replaced && /^[[:space:]]*"[a-f0-9]{64}"[[:space:]]*$/ {
+      print "  \"" sha "\""
+      replaced=1
+      next
+    }
+    in_sha && /^\)/ { in_sha=0; print; next }
+    { print }
+  ' "${PACSCRIPT}" > "${PACSCRIPT}.tmp"
+  mv "${PACSCRIPT}.tmp" "${PACSCRIPT}"
+
+  echo "[+] Updated ${PACSCRIPT}:"
+  echo "    pkgver=${VERSION}"
+  echo "    _build=${BUILD}"
+  echo "    sha256=${NEW_SHA}"
 fi
 
-echo "[-] Updating ${PACSCRIPT}..."
-sed -i "s/^pkgver=\".*\"/pkgver=\"${VERSION}\"/" "${PACSCRIPT}"
-sed -i "s/^_build=.*/_build=${BUILD}/" "${PACSCRIPT}"
-
-# Update only the first sha256 entry (archive), keep desktop checksum untouched.
-awk -v sha="${NEW_SHA}" '
-  BEGIN { in_sha=0; replaced=0 }
-  /^sha256sums=\(/ { in_sha=1; print; next }
-  in_sha && !replaced && /^[[:space:]]*"[a-f0-9]{64}"[[:space:]]*$/ {
-    print "  \"" sha "\""
-    replaced=1
-    next
-  }
-  in_sha && /^\)/ { in_sha=0; print; next }
-  { print }
-' "${PACSCRIPT}" > "${PACSCRIPT}.tmp"
-mv "${PACSCRIPT}.tmp" "${PACSCRIPT}"
-
-echo "[+] Updated ${PACSCRIPT}:"
-echo "    pkgver=${VERSION}"
-echo "    _build=${BUILD}"
-echo "    sha256=${NEW_SHA}"
-
-echo "[i] Skipping .SRCINFO generation (script updates pacscript only)."
+generate_srcinfo
 
 # vim: set filetype=bash tabstop=2 foldmethod=marker expandtab:
