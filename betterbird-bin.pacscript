@@ -4,8 +4,8 @@
 pkgname="betterbird-bin"
 # gives="betterbird"
 _appname="betterbird"
-pkgver="153.4.0esr"
-_build=bb10
+pkgver="153.5.0esr"
+_build=bb11
 pkgdesc="Fine-tuned version of Mozilla Thunderbird, Thunderbird on steroids, if you will"
 maintainer=("tranquil <tranquiltr0@proton.me>")
 arch=("x86_64")
@@ -19,7 +19,7 @@ source=(
 )
 
 sha256sums=(
-  "38dd24890a66b4cf9a45bc24e15192e00c26b929e1bb8df7974c16a4539129e2"
+  "253b1760c9b7a5502a210c90d530f87eebdcae87b7af13af213d50ffb255dc11"
     "bce809385dc48951ca6309776ed8fe5213ebbce301a790349172a799d8987151"
 )
 
